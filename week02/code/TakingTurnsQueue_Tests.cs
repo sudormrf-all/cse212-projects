@@ -1,17 +1,19 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+
 // TODO Problem 1 - Run test cases and record any defects the test code finds in the comment above the test method.
 // DO NOT MODIFY THE CODE IN THE TESTS in this file, just the comments above the tests. 
 // Fix the code being tested to match requirements and make all tests pass. 
+
 
 [TestClass]
 public class TakingTurnsQueueTests
 {
     [TestMethod]
     // Scenario: Create a queue with the following people and turns: Bob (2), Tim (5), Sue (3) and
-    // run until the queue is empty
-    // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, Sue, Tim, Tim
-    // Defect(s) Found: 
+    // run until the queue is empty.
+    // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, Sue, Tim, Tim.
+    // Defect(s) Found: GetNextPerson only re-enqueued people when Turns > 1 and never re-enqueued people with Turns <= 0, so players were removed too early and infinite players were dropped.
     public void TestTakingTurnsQueue_FiniteRepetition()
     {
         var bob = new Person("Bob", 2);
@@ -40,10 +42,10 @@ public class TakingTurnsQueueTests
     }
 
     [TestMethod]
-    // Scenario: Create a queue with the following people and turns: Bob (2), Tim (5), Sue (3)
-    // After running 5 times, add George with 3 turns.  Run until the queue is empty.
-    // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, George, Sue, Tim, George, Tim, George
-    // Defect(s) Found: 
+    // Scenario: Create a queue with the following people and turns: Bob (2), Tim (5), Sue (3).
+    // After running 5 times, add George with 3 turns. Run until the queue is empty.
+    // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, George, Sue, Tim, George, Tim, George.
+    // Defect(s) Found: Same turn-handling defect as above caused the sequence to be wrong, especially after adding George; players with 1 turn were removed too soon and infinite players were not preserved.
     public void TestTakingTurnsQueue_AddPlayerMidway()
     {
         var bob = new Person("Bob", 2);
@@ -82,10 +84,10 @@ public class TakingTurnsQueueTests
     }
 
     [TestMethod]
-    // Scenario: Create a queue with the following people and turns: Bob (2), Tim (Forever), Sue (3)
+    // Scenario: Create a queue with the following people and turns: Bob (2), Tim (Forever with 0 turns), Sue (3).
     // Run 10 times.
-    // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, Sue, Tim, Tim
-    // Defect(s) Found: 
+    // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, Sue, Tim, Tim.
+    // Defect(s) Found: Tim with infinite turns (Turns = 0) was treated like a finite player and was removed from the queue instead of being re-enqueued every time without changing his Turns value.
     public void TestTakingTurnsQueue_ForeverZero()
     {
         var timTurns = 0;
@@ -113,10 +115,10 @@ public class TakingTurnsQueueTests
     }
 
     [TestMethod]
-    // Scenario: Create a queue with the following people and turns: Tim (Forever), Sue (3)
+    // Scenario: Create a queue with the following people and turns: Tim (Forever with negative turns), Sue (3).
     // Run 10 times.
-    // Expected Result: Tim, Sue, Tim, Sue, Tim, Sue, Tim, Tim, Tim, Tim
-    // Defect(s) Found: 
+    // Expected Result: Tim, Sue, Tim, Sue, Tim, Sue, Tim, Tim, Tim, Tim.
+    // Defect(s) Found: Negative turns were not treated as infinite; Tim was dropped instead of being re-enqueued forever while keeping his negative Turns value unchanged.
     public void TestTakingTurnsQueue_ForeverNegative()
     {
         var timTurns = -3;
@@ -141,9 +143,9 @@ public class TakingTurnsQueueTests
     }
 
     [TestMethod]
-    // Scenario: Try to get the next person from an empty queue
-    // Expected Result: Exception should be thrown with appropriate error message.
-    // Defect(s) Found: 
+    // Scenario: Try to get the next person from an empty queue.
+    // Expected Result: InvalidOperationException is thrown with message "No one in the queue.".
+    // Defect(s) Found: None (queue already threw InvalidOperationException with the correct message when empty).
     public void TestTakingTurnsQueue_Empty()
     {
         var players = new TakingTurnsQueue();
@@ -165,7 +167,7 @@ public class TakingTurnsQueueTests
         {
             Assert.Fail(
                  string.Format("Unexpected exception of type {0} caught: {1}",
-                                e.GetType(), e.Message)
+                               e.GetType(), e.Message)
             );
         }
     }
